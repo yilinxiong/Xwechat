@@ -8,7 +8,7 @@ Running wechat in shell terminal
 ![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwechat2.PNG)
 
 
-## Start application(actually just a script)
+## Start application(actually just a script, only can run in python3)
 <pre> python mybot.py </pre>
 
 
@@ -20,3 +20,4 @@ After you start the application, you just need to wait for messages coming. Afte
 1. Add a robot to reply message automaticially
 2. Optimize typing while send message. For now, you can not revoke or delete what you have typied while send messages as the "delete" key in the keyboard doesn't work. 
 3. Add the return fuction so that we can cancel sending messages. Then you can choose another friend/group to send messages or just view the messages only
+4. Optimize system exit hanlder and asyncio loop close
