@@ -6,4 +6,4 @@ Running wechat in shell terminal
 
 
 ## Send message
-![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwechat2.PNG)
+![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwechat1.PNG)
