@@ -13,8 +13,8 @@ def print_msg():
     last_messages = None
     friends = bot.friends()
     groups = bot.groups()
-    friends.extend(groups)
-    mwin.rwin.friends = friends
+    groups.extend(friends)
+    mwin.rwin.friends = groups
     while True:
         try:
             messages = bot.messages
