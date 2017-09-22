@@ -128,6 +128,7 @@ class RightWindow(CWindow):
                 continue
             else:
                 self.is_typed = False
+                curses.noecho()
                 self.display()
 
 class MainWindow(object):
