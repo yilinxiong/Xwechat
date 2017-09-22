@@ -35,6 +35,8 @@ def listener():
 
 @asyncio.coroutine
 def listener_executor(loop):
+    # https://docs.python.org/3/library/asyncio-eventloop.html
+    # The listener is a blocking function, call the function in a Executor which is pool of threads will avoid blocking other tasks
     yield from loop.run_in_executor(None, listener)
 
 

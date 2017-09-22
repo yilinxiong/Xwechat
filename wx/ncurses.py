@@ -118,17 +118,24 @@ class RightWindow(CWindow):
         self.is_typed = True
         chater = self._chats[self.selected]
         while self.is_typed:
+            # Keep waiting for user to input the characters
             self.right_screen.clear()
             self.right_screen.addstr(0, 0, chater.name + ':')
             self.right_screen.refresh()
+            # Display the input characters and make the blinking cursor visible so that we can know where the cursor is
+            # This is helpful while using the backspace to delete the typied characters
             curses.echo()
+            curses.curs_set(1)
             msg = self.right_screen.getstr(0, str_len(chater.name) + 2)
             if msg:
                 chater.send(msg.decode('utf8'))
                 continue
             else:
+                # If not input anything, then back to the chats list page so that we can re-choose the chat to send messages
                 self.is_typed = False
+                # Do not display the blinking cursor and pressed key while not sending the messages
                 curses.noecho()
+                curses.curs_set(1)
                 self.display()
 
 class MainWindow(object):
