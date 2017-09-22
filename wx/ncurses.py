@@ -115,18 +115,20 @@ class RightWindow(CWindow):
     def chat(self):
         if self._chats is None:
             self.display()
-        chater = self._chats[self.selected]
-        self.right_screen.clear()
-        self.right_screen.addstr(0, 0, chater.name + ':')
-        self.right_screen.refresh()
         self.is_typed = True
+        chater = self._chats[self.selected]
         while self.is_typed:
+            self.right_screen.clear()
+            self.right_screen.addstr(0, 0, chater.name + ':')
+            self.right_screen.refresh()
             curses.echo()
             msg = self.right_screen.getstr(0, str_len(chater.name) + 2)
             if msg:
                 chater.send(msg.decode('utf8'))
-            self.is_typed = False
-            self.display()
+                continue
+            else:
+                self.is_typed = False
+                self.display()
 
 class MainWindow(object):
     def __init__(self, std_screen):
