@@ -11,6 +11,10 @@ from time import sleep
 @asyncio.coroutine 
 def print_msg():
     last_messages = None
+    friends = bot.friends()
+    groups = bot.groups()
+    friends.extend(groups)
+    mwin.rwin.friends = friends
     while True:
         try:
             messages = bot.messages
@@ -51,3 +55,4 @@ if __name__ == '__main__':
         loop.stop()
         loop.close()
         sys.exit()
+

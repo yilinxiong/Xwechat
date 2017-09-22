@@ -1,10 +1,11 @@
 import curses
 import sys
+from math import ceil
 from utils import parse_msg, parse_chats, str_len
 
 
 class CWindow(object):
-    def __init__(self, std_screen, pos_x=0, pos_y=0):
+    def __init__(self, std_screen):
         self.window = std_screen
         self.pos_x, self.pos_y = 0, 0
         self.total_rows, self.total_cols = self.window.getmaxyx()
@@ -32,7 +33,7 @@ class CWindow(object):
 
 
 class LeftWindow(CWindow):
-    def __init__(self, std_screen, pos_x=0, pos_y=0):
+    def __init__(self, std_screen):
         super(LeftWindow, self).__init__(std_screen)
         self.left_screen, self.left_rows, self.left_cols = self.create()
         self.messages = None
@@ -54,15 +55,17 @@ class LeftWindow(CWindow):
 
 
 class RightWindow(CWindow):
-    def __init__(self, std_screen, pos_x=0, pos_y=0):
+    def __init__(self, std_screen):
         super(RightWindow, self).__init__(std_screen)
         self.right_screen, self.right_rows, self.right_cols, self.pos_y, self.pos_x= self.create()
-        self.chats = None
-        self._chats = None
+        self.friends = None
+        self._friends = None
         self.active = False
         self.selected = 0
+        self.page = 0
         self.messages = None
         self.is_typed = False
+        self.list_all = False
 
     def create(self):
         right_rows = self.total_rows - 2
@@ -74,49 +77,88 @@ class RightWindow(CWindow):
 
     def display(self):
         if not self.is_typed:
+            if not self.list_all:
+                friends = parse_chats(self.messages)
+            else:
+                friends = self.friends
             self.right_screen.clear()
-            #self.right_screen.leaveok(0)
-            self.right_screen.addstr(0, 0, 'Recent chats:')
-            self.chats = parse_chats(self.messages)
-            if not self.chats:
+            if not friends:
+                if self.list_all:
+                    show_msg = "Couldn't fetch friends list!!!"
+                else:
+                    show_msg = "No new chats:"
+                self.right_screen.addstr(0, 0, show_msg)
                 self.right_screen.refresh()
                 return
-            n = 1
-            if len(self.chats) >= self.right_rows:
-                self._chats = chats[len(self.chats)-self.right_rows-1:]
             else:
-                self._chats = self.chats
-            if self.selected >= len(self._chats):
-                self.selected = len(self._chats) - 1
+                if self.list_all:
+                    msg = 'Friends list(' + str(len(friends)) + '):'
+                else:
+                    msg = 'Chats list(' + str(len(friends)) + '):'
+                self.right_screen.addstr(0, 0, msg)
+
+            n = 1
+            page_rows = self.right_rows - 1
+            total_page = ceil(len(friends)/page_rows) - 1
+            if len(friends) >= page_rows:
+                if self.page > total_page:
+                    self.page = total_page
+                elif self.page < 0:
+                    self.page = 0
+                self._friends = friends[page_rows*self.page:page_rows*(self.page+1)-1]
+            else:
+                self._friends = friends
+
+            if self.selected >= len(self._friends):
+                self.selected = len(self._friends) - 1
             elif self.selected < 0:
                 self.selected = 0
-            for index, chat in enumerate(self._chats):
+
+            for index, friend in enumerate(self._friends):
                 if index == self.selected:
                     mode = curses.A_REVERSE
                 else:
                     mode = curses.A_NORMAL
-                self.right_screen.addstr(n, 0, str(n) + ': ' + chat.name, mode)
+                self.right_screen.addstr(n, 0, str(n) + ': ' + friend.name, mode)
                 n += 1
             self.right_screen.refresh()
-      
+
     def listener(self, key):
-        if key in [curses.KEY_DOWN, 66]:
+        if key == curses.KEY_DOWN:
             self.selected += 1
             self.display()
-        elif key in [curses.KEY_UP, 65]:
+        elif key == curses.KEY_UP:
             if self.selected >= 1:
                 self.selected -= 1
             else:
                 self.selected = 0
             self.display()
+        elif key in [ord('a'), ord('A')]:
+            self.list_all = True
+            self.selected = 0
+            self.display()
+        elif key == curses.KEY_LEFT:
+            # Only can be use in display all
+            if self.list_all:
+                self.page -= 1
+                self.display()
+        elif key == curses.KEY_RIGHT:
+            # Only can be use in display all
+            if self.list_all:
+                self.page += 1
+                self.display()
+        elif key in [ord('b'), ord('B')]:
+            self.list_all = False
+            self.selected = 0
+            self.display()
         elif key in [curses.KEY_ENTER, ord('\n'), 10]:
             self.chat()
 
     def chat(self):
-        if self._chats is None:
+        if self._friends is None:
             self.display()
         self.is_typed = True
-        chater = self._chats[self.selected]
+        chater = self._friends[self.selected]
         while self.is_typed:
             # Keep waiting for user to input the characters
             self.right_screen.clear()
@@ -135,8 +177,9 @@ class RightWindow(CWindow):
                 self.is_typed = False
                 # Do not display the blinking cursor and pressed key while not sending the messages
                 curses.noecho()
-                curses.curs_set(1)
+                curses.curs_set(0)
                 self.display()
+
 
 class MainWindow(object):
     def __init__(self, std_screen):
@@ -177,4 +220,5 @@ class MainWindow(object):
         curses.nocbreak()
         curses.echo()
         curses.endwin()
+
 
