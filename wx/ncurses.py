@@ -1,5 +1,6 @@
-import curses
+import re
 import sys
+import curses
 from math import ceil
 from utils import parse_msg, parse_chats, str_len
 
@@ -77,6 +78,7 @@ class RightWindow(CWindow):
 
     def display(self):
         if not self.is_typed:
+            self._friends = None
             if not self.list_all:
                 friends = parse_chats(self.messages)
             else:
@@ -152,25 +154,39 @@ class RightWindow(CWindow):
             self.selected = 0
             self.display()
         elif key in [curses.KEY_ENTER, ord('\n'), 10]:
-            self.chat()
+            if self._friends:
+                self.chat()
+        elif key in [27, curses.KEY_HOME]:         # Pressed ESC or HOME key
+            self.list_all = False
+            self.selected = 0
+            curses.noecho()
+            curses.curs_set(0)
+            self.display()
 
     def chat(self):
-        if self._friends is None:
-            self.display()
         self.is_typed = True
         chater = self._friends[self.selected]
+        # Display the input characters and make the blinking cursor visible so that we can know where the cursor is
+        # This is helpful while using the backspace to delete the typied characters
+        curses.echo()
+        curses.curs_set(1)
+        self.right_screen.keypad(0)
         while self.is_typed:
             # Keep waiting for user to input the characters
             self.right_screen.clear()
             self.right_screen.addstr(0, 0, chater.name + ':')
             self.right_screen.refresh()
-            # Display the input characters and make the blinking cursor visible so that we can know where the cursor is
-            # This is helpful while using the backspace to delete the typied characters
-            curses.echo()
-            curses.curs_set(1)
             msg = self.right_screen.getstr(0, str_len(chater.name) + 2)
-            if msg:
+            # Only when the messages is not empty and doesn't contain ESC key we send the messages to friend,
+            #   in other words, if we don't want to send the messages we typed,
+            #     just press ESC key to finish typing and then press Enter key,
+            #       it will go back to the displaying messages page.
+            # Moreover, if we want to revoke what we have typed, just press DELETE keyand then press Enter key,
+            #   it will clear what you have typed and wait for you to type messages
+            if msg and not re.search(b'\x1b$', msg):          # messages not contain ESC key
                 chater.send(msg.decode('utf8'))
+                continue
+            elif msg and re.search(b'\x1b[3~', msg):          # messages contain DELETE key
                 continue
             else:
                 # If not input anything, then back to the chats list page so that we can re-choose the chat to send messages
