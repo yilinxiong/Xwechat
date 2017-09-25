@@ -183,15 +183,17 @@ class RightWindow(CWindow):
             #       it will go back to the displaying messages page.
             # Moreover, if we want to revoke what we have typed, just press DELETE keyand then press Enter key,
             #   it will clear what you have typed and wait for you to type messages
-            if msg and not re.search(b'\x1b$', msg):          # messages not contain ESC key
-                chater.send(msg.decode('utf8'))
+            if msg and b'\x1b[3~' in msg:          # messages contain DELETE key
                 continue
-            elif msg and re.search(b'\x1b[3~', msg):          # messages contain DELETE key
+            elif msg and re.search(b'\x1b$', msg):          # messages not contain ESC key
+                chater.send(msg.decode('utf8'))
                 continue
             else:
                 # If not input anything, then back to the chats list page so that we can re-choose the chat to send messages
                 self.is_typed = False
                 # Do not display the blinking cursor and pressed key while not sending the messages
+                # Change back all curses settings and return back to the original page
+                self.right_screen.keypad(1)
                 curses.noecho()
                 curses.curs_set(0)
                 self.display()
