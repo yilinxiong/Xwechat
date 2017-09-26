@@ -100,14 +100,14 @@ class RightWindow(CWindow):
                 self.right_screen.addstr(0, 0, msg)
 
             n = 1
-            page_rows = self.right_rows - 1
+            page_rows = self.right_rows - 2
             total_page = ceil(len(friends)/page_rows) - 1
             if len(friends) >= page_rows:
                 if self.page > total_page:
                     self.page = total_page
                 elif self.page < 0:
                     self.page = 0
-                self._friends = friends[page_rows*self.page:page_rows*(self.page+1)-1]
+                self._friends = friends[page_rows*self.page:page_rows*(self.page+1)]
             else:
                 self._friends = friends
 
@@ -123,6 +123,7 @@ class RightWindow(CWindow):
                     mode = curses.A_NORMAL
                 self.right_screen.addstr(n, 0, str(n) + ': ' + friend.name, mode)
                 n += 1
+            self.right_screen.addstr(self.right_rows - 1, 0, '<- Page %d/%d ->' % (self.page+1, total_page+1))
             self.right_screen.refresh()
 
     def listener(self, key):
@@ -185,7 +186,7 @@ class RightWindow(CWindow):
             #   it will clear what you have typed and wait for you to type messages
             if msg and b'\x1b[3~' in msg:          # messages contain DELETE key
                 continue
-            elif msg and re.search(b'\x1b$', msg):          # messages not contain ESC key
+            elif msg and not re.search(b'\x1b$', msg):          # messages not contain ESC key
                 chater.send(msg.decode('utf8'))
                 continue
             else:
