@@ -1,7 +1,7 @@
 def parse_msg(messages, rows, cols):
     parsed_msg = []
     if not messages:
-        return [('No new messages', 1)]
+        return [('No new messages:', 1)]
     origin_msg = [msg for msg in messages]
     total_lines = 0
     for message in origin_msg[::-1]:

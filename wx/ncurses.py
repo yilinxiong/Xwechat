@@ -3,6 +3,7 @@ import sys
 import curses
 from math import ceil
 from utils import parse_msg, parse_chats, str_len
+from cow import COW1, COW2
 
 
 class CWindow(object):
@@ -52,6 +53,14 @@ class LeftWindow(CWindow):
         for (msg, lines) in parsed_messages:
             self.left_screen.addstr(n, 0, msg)
             n += lines
+        if len(parsed_messages) == 1:
+            i = 1
+            cow_length = max([len(c) for c in COW1.split('||')])
+            for cow in COW1.split('||'):
+                self.left_screen.addstr(i, self.left_cols - cow_length, cow)
+                if i >= self.left_rows:
+                    break
+                i += 1
         self.left_screen.refresh()
 
 
@@ -90,6 +99,12 @@ class RightWindow(CWindow):
                 else:
                     show_msg = "No new chats:"
                 self.right_screen.addstr(0, 0, show_msg)
+                i = 1
+                for cow in COW2.split('||'):
+                    self.right_screen.addstr(i, 0, cow)
+                    if i >= self.right_rows -2:
+                        break
+                    i += 1
                 self.right_screen.refresh()
                 return
             else:
