@@ -1,8 +1,11 @@
-def parse_msg(messages, rows, cols):
+def parse_msg(messages, rows, cols, user=None):
     parsed_msg = []
     if not messages:
         return [('No new messages:', 1)]
-    origin_msg = [msg for msg in messages]
+    if user is not None:
+        origin_msg = [msg for msg in messages if msg.chat == user]
+    else:
+        origin_msg = [msg for msg in messages]
     total_lines = 0
     for message in origin_msg[::-1]:
         msg_time = message.receive_time.strftime("%Y-%m-%d %H:%M:%S  ")

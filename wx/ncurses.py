@@ -3,7 +3,6 @@ import sys
 import curses
 from math import ceil
 from utils import parse_msg, parse_chats, str_len
-from cow import COW1, COW2
 
 
 class CWindow(object):
@@ -53,84 +52,100 @@ class LeftWindow(CWindow):
         for (msg, lines) in parsed_messages:
             self.left_screen.addstr(n, 0, msg)
             n += lines
-        if len(parsed_messages) == 1:
-            i = 1
-            cow_length = max([len(c) for c in COW1.split('||')])
-            for cow in COW1.split('||'):
-                self.left_screen.addstr(i, self.left_cols - cow_length, cow)
-                if i >= self.left_rows:
-                    break
-                i += 1
         self.left_screen.refresh()
 
 
 class RightWindow(CWindow):
     def __init__(self, std_screen):
         super(RightWindow, self).__init__(std_screen)
-        self.right_screen, self.right_rows, self.right_cols, self.pos_y, self.pos_x= self.create()
+        self.right_rows = None
+        self.right_cols = None
+        self.right_pos_x = None
+        self.right_pos_y = None
+        self.right_screen = None
         self.friends = None
         self._friends = None
+        self.chater = None
         self.active = False
         self.selected = 0
         self.page = 0
+        self.total_page = 0
         self.messages = None
         self.is_typed = False
         self.list_all = False
+        self.right_top_cols = None
+        self.right_top_rows = None
+        self.right_bottom_cols = None
+        self.right_bottom_rows = None
+        self.right_top_screen = None
+        self.right_bottom_screen = None
+        self.init_right_window()
+        self.init_chat_window()
 
-    def create(self):
-        right_rows = self.total_rows - 2
-        right_cols = self.total_cols - int(self.total_cols / 2) - 3
-        pos_x = self.pos_x + 1
-        pos_y = self.pos_y + int(self.total_cols / 2) + 2
-        right_screen = self.window.derwin(right_rows, right_cols, pos_x, pos_y)
-        return right_screen, right_rows, right_cols, pos_y, pos_x
+    def init_right_window(self):
+        self.right_rows = self.total_rows - 2
+        self.right_cols = self.total_cols - int(self.total_cols / 2) - 3
+        self.right_pos_x = self.pos_x + 1
+        self.right_pos_y = self.pos_y + int(self.total_cols / 2) + 2
+        self.right_screen = self.window.derwin(self.right_rows, self.right_cols, self.right_pos_x, self.right_pos_y)
+
+    def init_chat_window(self):
+        self.right_top_cols = self.right_bottom_cols = self.right_cols
+        self.right_bottom_rows = 6
+        self.right_top_rows = self.right_rows - 6
+        self.right_top_screen = self.right_screen.derwin(self.right_top_rows, self.right_top_cols, 0, 0)
+        self.right_bottom_screen = self.right_screen.derwin(self.right_bottom_rows,
+                                                            self.right_bottom_cols,
+                                                            self.right_top_rows,
+                                                            0)
+
+    def pre_display(self):
+        self._friends = None
+        self.right_screen.clear()
+        if not self.list_all:
+            friends = parse_chats(self.messages)
+        else:
+            friends = self.friends
+
+        if not friends:
+            if self.list_all:
+                show_msg = "Couldn't fetch friends list!!!"
+            else:
+                show_msg = "No new chats:"
+            self.right_screen.addstr(0, 0, show_msg)
+            self.right_screen.refresh()
+            return False
+        else:
+            if self.list_all:
+                msg = 'Friends list(' + str(len(friends)) + '):'
+            else:
+                msg = 'Chats list(' + str(len(friends)) + '):'
+            self.right_screen.addstr(0, 0, msg)
+
+        page_rows = self.right_rows - 2
+        self.total_page = ceil(len(friends) / page_rows) - 1
+        if len(friends) >= page_rows:
+            if self.page > self.total_page:
+                self.page = self.total_page
+            elif self.page < 0:
+                self.page = 0
+            self._friends = friends[page_rows * self.page:page_rows * (self.page + 1) - 1]
+        else:
+            self._friends = friends
+        return True
 
     def display(self):
         if not self.is_typed:
-            self._friends = None
-            if not self.list_all:
-                friends = parse_chats(self.messages)
-            else:
-                friends = self.friends
-            self.right_screen.clear()
-            if not friends:
-                if self.list_all:
-                    show_msg = "Couldn't fetch friends list!!!"
-                else:
-                    show_msg = "No new chats:"
-                self.right_screen.addstr(0, 0, show_msg)
-                i = 1
-                for cow in COW2.split('||'):
-                    self.right_screen.addstr(i, 0, cow)
-                    if i >= self.right_rows -2:
-                        break
-                    i += 1
-                self.right_screen.refresh()
+            result = self.pre_display()
+            if not result:
                 return
-            else:
-                if self.list_all:
-                    msg = 'Friends list(' + str(len(friends)) + '):'
-                else:
-                    msg = 'Chats list(' + str(len(friends)) + '):'
-                self.right_screen.addstr(0, 0, msg)
-
-            n = 1
-            page_rows = self.right_rows - 2
-            total_page = ceil(len(friends)/page_rows) - 1
-            if len(friends) >= page_rows:
-                if self.page > total_page:
-                    self.page = total_page
-                elif self.page < 0:
-                    self.page = 0
-                self._friends = friends[page_rows*self.page:page_rows*(self.page+1)]
-            else:
-                self._friends = friends
 
             if self.selected >= len(self._friends):
                 self.selected = len(self._friends) - 1
             elif self.selected < 0:
                 self.selected = 0
 
+            n = 1
             for index, friend in enumerate(self._friends):
                 if index == self.selected:
                     mode = curses.A_REVERSE
@@ -138,8 +153,19 @@ class RightWindow(CWindow):
                     mode = curses.A_NORMAL
                 self.right_screen.addstr(n, 0, str(n) + ': ' + friend.name, mode)
                 n += 1
-            self.right_screen.addstr(self.right_rows - 1, 0, '<- Page %d/%d ->' % (self.page+1, total_page+1))
+            self.right_screen.addstr(self.right_rows - 1, 0, '<- Page %d/%d ->' % (self.page+1, self.total_page))
             self.right_screen.refresh()
+        else:
+            self.display_chater_msg()
+
+    def display_chater_msg(self):
+        msg = parse_msg(self.messages, self.right_top_rows, self.right_top_cols, self.chater)
+        self.right_top_screen.clear()
+        n = 0
+        for (msg, lines) in msg:
+            self.right_top_screen.addstr(n, 0, msg)
+            n += lines
+        self.right_top_screen.refresh()
 
     def listener(self, key):
         if key == curses.KEY_DOWN:
@@ -180,36 +206,41 @@ class RightWindow(CWindow):
             self.display()
 
     def chat(self):
+        self.right_screen.clear()
+        self.right_screen.refresh()
+        self.chater = self._friends[self.selected]
         self.is_typed = True
-        chater = self._friends[self.selected]
+        self.display_chater_msg()
         # Display the input characters and make the blinking cursor visible so that we can know where the cursor is
         # This is helpful while using the backspace to delete the typied characters
         curses.echo()
         curses.curs_set(1)
-        self.right_screen.keypad(0)
+        self.right_bottom_screen.keypad(0)
+        self.right_bottom_screen.leaveok(0)
         while self.is_typed:
             # Keep waiting for user to input the characters
-            self.right_screen.clear()
-            self.right_screen.addstr(0, 0, chater.name + ':')
-            self.right_screen.refresh()
-            msg = self.right_screen.getstr(0, str_len(chater.name) + 2)
+            self.right_bottom_screen.clear()
+            # Print border to separate the bottom and top screens
+            self.right_bottom_screen.addstr(0, 0, '-' * self.right_cols)
+            self.right_bottom_screen.addstr(1, 0, self.chater.name + ':')
+            self.right_bottom_screen.refresh()
+            msg = self.right_bottom_screen.getstr(1, str_len(self.chater.name) + 2)
             # Only when the messages is not empty and doesn't contain ESC key we send the messages to friend,
             #   in other words, if we don't want to send the messages we typed,
             #     just press ESC key to finish typing and then press Enter key,
             #       it will go back to the displaying messages page.
-            # Moreover, if we want to revoke what we have typed, just press DELETE keyand then press Enter key,
+            # Moreover, if we want to revoke what we have typed, just press DELETE key and then press Enter key,
             #   it will clear what you have typed and wait for you to type messages
             if msg and b'\x1b[3~' in msg:          # messages contain DELETE key
                 continue
             elif msg and not re.search(b'\x1b$', msg):          # messages not contain ESC key
-                chater.send(msg.decode('utf8'))
+                self.chater.send(msg.decode('utf8'))
                 continue
             else:
                 # If not input anything, then back to the chats list page so that we can re-choose the chat to send messages
                 self.is_typed = False
                 # Do not display the blinking cursor and pressed key while not sending the messages
                 # Change back all curses settings and return back to the original page
-                self.right_screen.keypad(1)
                 curses.noecho()
                 curses.curs_set(0)
                 self.display()
@@ -254,5 +285,6 @@ class MainWindow(object):
         curses.nocbreak()
         curses.echo()
         curses.endwin()
+
 
 
