@@ -24,6 +24,9 @@ def print_msg():
             yield from asyncio.sleep(1)
             mwin.lwin.messages = mwin.rwin.messages = messages
             mwin.update()
+            # Make sure the cursor will back to the right bottom screen after updating the messages
+            if mwin.rwin.is_typed:
+                mwin.rwin.right_bottom_screen.refresh()
             last_messages = list(messages)
         except (KeyboardInterrupt, SystemExit):
             break

@@ -46,6 +46,7 @@ class LeftWindow(CWindow):
         return left_screen, left_rows, left_cols
 
     def display(self):
+        self.left_screen.leaveok(1)
         self.left_screen.clear()
         parsed_messages = parse_msg(self.messages, self.left_rows, self.left_cols)
         n = 0
@@ -88,6 +89,7 @@ class RightWindow(CWindow):
         self.right_pos_x = self.pos_x + 1
         self.right_pos_y = self.pos_y + int(self.total_cols / 2) + 2
         self.right_screen = self.window.derwin(self.right_rows, self.right_cols, self.right_pos_x, self.right_pos_y)
+        self.right_screen.leaveok(1)
 
     def init_chat_window(self):
         self.right_top_cols = self.right_bottom_cols = self.right_cols
@@ -98,6 +100,10 @@ class RightWindow(CWindow):
                                                             self.right_bottom_cols,
                                                             self.right_top_rows,
                                                             0)
+        # Makes the cursor only visible in the bottom screen
+        self.right_top_screen.leaveok(1)
+        self.right_bottom_screen.leaveok(0)
+        self.right_bottom_screen.keypad(0)
 
     def pre_display(self):
         self._friends = None
@@ -215,8 +221,6 @@ class RightWindow(CWindow):
         # This is helpful while using the backspace to delete the typied characters
         curses.echo()
         curses.curs_set(1)
-        self.right_bottom_screen.keypad(0)
-        self.right_bottom_screen.leaveok(0)
         while self.is_typed:
             # Keep waiting for user to input the characters
             self.right_bottom_screen.clear()
