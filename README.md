@@ -11,7 +11,7 @@ Running wechat in shell terminal
 ![image](https://github.com/MrDreamerSang/Xwechat/blob/master/xwx13.PNG)
 
 
-## Start application(actually just a script, only can run in python3)
+## Start application(actually just a script, requires python3 and wxpy module)
 <pre> python xwechat.py </pre>
 
 
