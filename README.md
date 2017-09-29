@@ -2,7 +2,7 @@
 Running wechat in shell terminal
 
 ## Send message(Press Enter key in your keyboard)
-![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwx3.PNG)
+![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwx4.PNG)
 
 ## Display messages and list recent chats only(Press 'b' or 'B' key in your keyboard)
 ![image](https://github.com/MrDreamerSang/Xwechat/blob/master/Xwx1.PNG)
