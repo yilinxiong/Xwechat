@@ -139,7 +139,7 @@ class RightWindow(CWindow):
                 self.page = self.total_page
             elif self.page < 0:
                 self.page = 0
-            self._friends = friends[page_rows * self.page:page_rows * (self.page + 1) - 1]
+            self._friends = friends[page_rows * self.page:page_rows * (self.page + 1)]
         else:
             self._friends = friends
         return True
