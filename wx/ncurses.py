@@ -22,28 +22,26 @@ class CWindow(object):
         self.window.addstr(self.total_rows - 1, 1, '-' * (self.total_cols - 2))
         self.window.refresh()
 
-    def display(self, *args, **kwargs):
+    def init_window(self, *args, **kwargs):
         pass
 
-    @staticmethod
-    def destroy():
-        curses.initscr()
-        curses.nocbreak()
-        curses.echo()
-        curses.endwin()
+    def display(self, *args, **kwargs):
+        pass
 
 
 class LeftWindow(CWindow):
     def __init__(self, std_screen):
         super(LeftWindow, self).__init__(std_screen)
-        self.left_screen, self.left_rows, self.left_cols = self.create()
+        self.left_rows = None
+        self.left_cols = None
+        self.left_screen = None
         self.messages = None
+        self.init_window()
 
-    def create(self):
-        left_rows = self.total_rows - 2
-        left_cols = int(self.total_cols / 2) - 2
-        left_screen = self.window.subwin(left_rows, left_cols, self.pos_x + 1, self.pos_y + 1)
-        return left_screen, left_rows, left_cols
+    def init_window(self):
+        self.left_rows = self.total_rows - 2
+        self.left_cols = int(self.total_cols / 2) - 2
+        self.left_screen = self.window.subwin(self.left_rows, self.left_cols, self.pos_x + 1, self.pos_y + 1)
 
     def display(self):
         self.left_screen.leaveok(1)
@@ -64,6 +62,13 @@ class RightWindow(CWindow):
         self.right_pos_x = None
         self.right_pos_y = None
         self.right_screen = None
+        self.right_top_cols = None
+        self.right_top_rows = None
+        self.right_bottom_cols = None
+        self.right_bottom_rows = None
+        self.right_top_screen = None
+        self.right_bottom_screen = None
+        self.messages = None
         self.friends = None
         self._friends = None
         self.chater = None
@@ -71,31 +76,30 @@ class RightWindow(CWindow):
         self.selected = 0
         self.page = 0
         self.total_page = 0
-        self.messages = None
         self.is_typed = False
         self.list_all = False
-        self.right_top_cols = None
-        self.right_top_rows = None
-        self.right_bottom_cols = None
-        self.right_bottom_rows = None
-        self.right_top_screen = None
-        self.right_bottom_screen = None
-        self.init_right_window()
-        self.init_chat_window()
+        self.init_window()
+        self.prepare_chat_window()
 
-    def init_right_window(self):
+    def init_window(self):
         self.right_rows = self.total_rows - 2
         self.right_cols = self.total_cols - int(self.total_cols / 2) - 3
         self.right_pos_x = self.pos_x + 1
         self.right_pos_y = self.pos_y + int(self.total_cols / 2) + 2
-        self.right_screen = self.window.derwin(self.right_rows, self.right_cols, self.right_pos_x, self.right_pos_y)
+        self.right_screen = self.window.derwin(self.right_rows,
+                                               self.right_cols,
+                                               self.right_pos_x,
+                                               self.right_pos_y)
         self.right_screen.leaveok(1)
 
-    def init_chat_window(self):
+    def prepare_chat_window(self):
         self.right_top_cols = self.right_bottom_cols = self.right_cols
         self.right_bottom_rows = 6
         self.right_top_rows = self.right_rows - 6
-        self.right_top_screen = self.right_screen.derwin(self.right_top_rows, self.right_top_cols, 0, 0)
+        self.right_top_screen = self.right_screen.derwin(self.right_top_rows,
+                                                         self.right_top_cols,
+                                                         0,
+                                                         0)
         self.right_bottom_screen = self.right_screen.derwin(self.right_bottom_rows,
                                                             self.right_bottom_cols,
                                                             self.right_top_rows,
@@ -159,7 +163,7 @@ class RightWindow(CWindow):
                     mode = curses.A_NORMAL
                 self.right_screen.addstr(n, 0, str(n) + ': ' + friend.name, mode)
                 n += 1
-            self.right_screen.addstr(self.right_rows - 1, 0, '<- Page %d/%d ->' % (self.page+1, self.total_page))
+            self.right_screen.addstr(self.right_rows - 1, 0, '<- Page %d/%d ->' % (self.page+1, self.total_page+1))
             self.right_screen.refresh()
         else:
             self.display_chater_msg()
@@ -289,6 +293,5 @@ class MainWindow(object):
         curses.nocbreak()
         curses.echo()
         curses.endwin()
-
 
 
