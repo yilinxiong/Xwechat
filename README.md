@@ -25,14 +25,12 @@ Press the direction key 'Up'/'Down'/'Right'/'Left'  ->  choose a friend/group to
 Press 'Enter'  ->  switch to the chat screen like the picture 1 above. It will generate two screens, the top one will display the messages you sent to or received from the friend/group you have chosen; the bottom one will wait for your inputs and send the message to the chosen friend/group
 
 ## Tips for the chats
-1. How to delete/rewrite messages you have typed?
+1. How to delete/rewrite messages you have typed?  
+&nbsp;&nbsp;While you are typing messages, if you want to delete/rewrite the messages, just press the DELETE key and then press Enter, it will then ask you to re-type messages
 
-  While you are typing messages, if you want to delete/rewrite the messages, just press the DELETE key and then press Enter, it will then ask you to re-type messages
-
-2. How to exit the chat page and list your friends/groups/contacts?
-
-  While you are typing messages, if you don't want to send the messages out and you want to return back to the page to display friends/groups/contacts, just press ESC key and then press Enter, it will go back to the friends list page
-  And if you didn't type anything yet, then just press Enter, it wil then go back to the friends list page as well.
+2. How to exit the chat page and list your friends/groups/contacts?  
+&nbsp;&nbsp;While you are typing messages, if you don't want to send the messages out and you want to return back to the page to display friends/groups/contacts, just press ESC key and then press Enter, it will go back to the friends list page  
+&nbsp;&nbsp;And if you didn't type anything yet, then just press Enter, it wil then go back to the friends list page as well.
 
 ## Improvements
 0. Daemonize the application
