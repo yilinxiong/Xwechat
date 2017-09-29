@@ -26,9 +26,11 @@ Press 'Enter'  ->  switch to the chat screen like the picture 1 above. It will g
 
 ## Tips for the chats
 1. How to delete/rewrite messages you have typed?
+
   While you are typing messages, if you want to delete/rewrite the messages, just press the DELETE key and then press Enter, it will then ask you to re-type messages
 
 2. How to exit the chat page and list your friends/groups/contacts?
+
   While you are typing messages, if you don't want to send the messages out and you want to return back to the page to display friends/groups/contacts, just press ESC key and then press Enter, it will go back to the friends list page
   And if you didn't type anything yet, then just press Enter, it wil then go back to the friends list page as well.
 
