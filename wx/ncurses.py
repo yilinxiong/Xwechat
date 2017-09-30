@@ -190,6 +190,7 @@ class RightWindow(CWindow):
         elif key in [ord('a'), ord('A')]:
             self.list_all = True
             self.selected = 0
+            self.page = 0
             self.display()
         elif key == curses.KEY_LEFT:
             # Only can be use in display all
@@ -204,6 +205,7 @@ class RightWindow(CWindow):
         elif key in [ord('b'), ord('B')]:
             self.list_all = False
             self.selected = 0
+            self.page = 0
             self.display()
         elif key in [curses.KEY_ENTER, ord('\n'), 10]:
             if self._friends:
