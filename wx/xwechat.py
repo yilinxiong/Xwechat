@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from wxpy import *
 import asyncio
 import curses
@@ -33,7 +34,7 @@ class XWechat(object):
                     self.mwin.rwin.right_bottom_screen.refresh()
                 last_messages = list(messages)
             except (KeyboardInterrupt, SystemExit):
-                break
+                sys.exit() 
 
     def listener(self):
         while True:
@@ -52,10 +53,11 @@ class XWechat(object):
         try:
             self.loop.run_until_complete(asyncio.wait([self.listener_executor(), self.print_msg()]))
         except (KeyboardInterrupt, SystemExit):
-            asyncio.gather(*asyncio.Task.all_tasks()).cancel()
+            #asyncio.gather(*asyncio.Task.all_tasks()).cancel()
+            asyncio.wait(*asyncio.Task.all_tasks()).cancel()
             self.loop.stop()
             self.loop.close()
-            sys.exit()
+            #sys.exit()
 
 
 if __name__ == '__main__':
