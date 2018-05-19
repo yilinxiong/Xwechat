@@ -1,8 +1,9 @@
 import re
-import sys
 import curses
 from math import ceil
-from utils import parse_msg, parse_chats, str_len
+
+from utils import messages_filter, str_len
+from exceptions import WXError
 
 
 class CWindow(object):
@@ -30,12 +31,13 @@ class CWindow(object):
 
 
 class LeftWindow(CWindow):
-    def __init__(self, std_screen):
+    def __init__(self, std_screen, db):
         super(LeftWindow, self).__init__(std_screen)
         self.left_rows = None
         self.left_cols = None
         self.left_screen = None
-        self.messages = None
+        self._db = db
+        self.messages = []
         self.init_window()
 
     def init_window(self):
@@ -44,19 +46,24 @@ class LeftWindow(CWindow):
         self.left_screen = self.window.subwin(self.left_rows, self.left_cols, self.pos_x + 1, self.pos_y + 1)
 
     def display(self):
+        _messages = messages_filter(self.messages, self.left_cols, self.left_rows)
         self.left_screen.leaveok(1)
         self.left_screen.clear()
-        parsed_messages = parse_msg(self.messages, self.left_rows, self.left_cols)
-        n = 0
-        for (msg, lines) in parsed_messages:
-            self.left_screen.addstr(n, 0, msg)
-            n += lines
+        if not _messages:
+            self.left_screen.addstr(0, 0, "No new messages: ")
+        else:
+            n = 0
+            for msg in _messages:
+                self.left_screen.addstr(n, 0, msg.text)
+                n += msg.lines
+
         self.left_screen.refresh()
 
 
 class RightWindow(CWindow):
-    def __init__(self, std_screen):
+    def __init__(self, std_screen, db):
         super(RightWindow, self).__init__(std_screen)
+        self._db = db
         self.right_rows = None
         self.right_cols = None
         self.right_pos_x = None
@@ -68,10 +75,11 @@ class RightWindow(CWindow):
         self.right_bottom_rows = None
         self.right_top_screen = None
         self.right_bottom_screen = None
-        self.messages = None
+        self.messages = []
         self.friends = None
         self._friends = None
         self.chater = None
+        self.chats = []
         self.active = False
         self.selected = 0
         self.page = 0
@@ -113,7 +121,7 @@ class RightWindow(CWindow):
         self._friends = None
         self.right_screen.clear()
         if not self.list_all:
-            friends = parse_chats(self.messages)
+            friends = self.chats
         else:
             friends = self.friends
 
@@ -169,12 +177,16 @@ class RightWindow(CWindow):
             self.display_chater_msg()
 
     def display_chater_msg(self):
-        msg = parse_msg(self.messages, self.right_top_rows, self.right_top_cols, self.chater)
+        _messages = messages_filter(self.messages, self.right_top_rows, self.right_top_cols)
         self.right_top_screen.clear()
-        n = 0
-        for (msg, lines) in msg:
-            self.right_top_screen.addstr(n, 0, msg)
-            n += lines
+        if not _messages:
+            self.right_top_screen.addstr(0, 0, "No new messages: ")
+        else:
+            n = 0
+            for msg in _messages:
+                self.right_top_screen.addstr(n, 0, msg.text)
+                n += msg.lines
+
         self.right_top_screen.refresh()
 
     def listener(self, key):
@@ -257,7 +269,7 @@ class RightWindow(CWindow):
 
 
 class MainWindow(object):
-    def __init__(self, std_screen):
+    def __init__(self, std_screen, db):
         try:
             self.screen = std_screen
             self.selected = 0
@@ -269,13 +281,14 @@ class MainWindow(object):
             self.main.nodelay(1)
             self.cwin = CWindow(self.screen)
             self.cwin.print_border()
-            self.lwin = LeftWindow(self.screen)
+            self.lwin = LeftWindow(self.screen, db)
             self.lwin.display()
-            self.rwin = RightWindow(self.screen)
+            self.rwin = RightWindow(self.screen, db)
             self.rwin.display()
             
-        except (KeyboardInterrupt, SystemExit):
-            self.destroy()
+        except Exception as e:
+            print(str(e))
+            raise WXError("Failed to initialize cursor")
 
     def update(self):
         self.lwin.display()
@@ -284,8 +297,8 @@ class MainWindow(object):
     def listener(self):
         key = self.main.getch()
         if key in [ord('q'), ord('Q')]:
-            self.destroy()
-            sys.exit()
+            # System exit, no need cleanup curses, leave it to the main process to handle
+            raise WXError("User exit!")
         else:
             self.rwin.listener(key)
 
