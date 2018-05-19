@@ -24,8 +24,7 @@ class XWechat(object):
         self.friends.extend(self.groups)
         self.mwin.rwin.friends = self.friends
 
-    @asyncio.coroutine
-    def update_db(self):
+    async def update_db(self):
         try:
             while True:
                 if self.bot.messages.updated:
@@ -33,13 +32,12 @@ class XWechat(object):
                     self.bot.messages.updated = False
                     self.db.process(new_messages)
 
-                yield from asyncio.sleep(0.5)
+                await asyncio.sleep(0.5)
         except Exception as e:
             print(str(e))
             raise WXError("Failed to process messages")
 
-    @asyncio.coroutine
-    def print_msg(self):
+    async def print_msg(self):
         try:
             while True:
                 # query chaters which has sent messages to you after you login
@@ -57,7 +55,7 @@ class XWechat(object):
                 if self.mwin.rwin.is_typed:
                     self.mwin.rwin.right_bottom_screen.refresh()
 
-                yield from asyncio.sleep(0.5)
+                await asyncio.sleep(0.5)
         except (KeyboardInterrupt, WXError):
             raise WXError("User KeyboardInterrupt, exit")
         except Exception as e:
@@ -71,12 +69,11 @@ class XWechat(object):
             except (KeyboardInterrupt, WXError):
                 raise WXError("Stop listening on the keyboard")
 
-    @asyncio.coroutine
-    def listener_executor(self):
+    async def listener_executor(self):
         # https://docs.python.org/3/library/asyncio-eventloop.html
         # The listener is a blocking function, calling the listener in a Executor
         # which is pool of threads will avoid blocking other tasks
-        yield from self.loop.run_in_executor(None, self.listener)
+        await self.loop.run_in_executor(None, self.listener)
 
     def cleanup(self):
         self.loop.close()
@@ -85,7 +82,7 @@ class XWechat(object):
         self.db.close()
 
     async def asynchronous(self):
-        tasks = [self.listener_executor(), self.update_db(), self.print_msg()]
+        tasks = [asyncio.ensure_future(task) for task in [self.listener_executor(), self.update_db(), self.print_msg()]]
         done, pending = await asyncio.wait(tasks, return_when=FIRST_EXCEPTION)
         for pending_task in pending:
             pending_task.cancel()
