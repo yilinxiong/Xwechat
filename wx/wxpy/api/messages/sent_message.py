@@ -53,6 +53,9 @@ class SentMessage(object):
         for k, v in attributes.items():
             setattr(self, k, v)
 
+        # mark message is read or not
+        self._read = False
+
     def __hash__(self):
         return hash((SentMessage, self.id))
 
@@ -119,3 +122,11 @@ class SentMessage(object):
 
         # noinspection PyUnresolvedReferences
         return req.post()
+
+    @property
+    def read(self):
+        return self._read
+
+    @read.setter
+    def read(self, read):
+        self._read = read

@@ -285,7 +285,7 @@ class MainWindow(object):
             self.lwin.display()
             self.rwin = RightWindow(self.screen, db)
             self.rwin.display()
-            
+
         except Exception as e:
             print(str(e))
             raise WXError("Failed to initialize cursor")
@@ -295,12 +295,13 @@ class MainWindow(object):
         self.rwin.display()
     
     def listener(self):
-        key = self.main.getch()
-        if key in [ord('q'), ord('Q')]:
-            # System exit, no need cleanup curses, leave it to the main process to handle
-            raise WXError("User exit!")
-        else:
-            self.rwin.listener(key)
+        while True:
+            key = self.main.getch()
+            if key in [ord('q'), ord('Q')]:
+                self.destroy()
+                raise WXError('User exit')
+            else:
+                self.rwin.listener(key)
 
     @staticmethod 
     def destroy():
