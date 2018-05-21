@@ -129,7 +129,7 @@ class RightWindow(CWindow):
             if self.list_all:
                 show_msg = "Couldn't fetch friends list!!!"
             else:
-                show_msg = "No new chats:"
+                show_msg = "No new chats:（Press 'a' to display your friends list）"
             self.right_screen.addstr(0, 0, show_msg)
             self.right_screen.refresh()
             return False

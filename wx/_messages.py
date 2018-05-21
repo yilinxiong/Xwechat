@@ -2,6 +2,7 @@
 import time
 
 from wxpy.api.messages.message import Message
+from wxpy.api.messages.sent_message import SentMessage
 from utils import str_len
 
 
@@ -16,7 +17,7 @@ class _Message(object):
 
     @property
     def text(self):
-        if isinstance(self.msg, Message):
+        if isinstance(self.msg, (Message, SentMessage)):
             received_time = self.msg.receive_time.strftime("%Y-%m-%d %H:%M:%S  ")
             message = received_time + str(self.msg)
         else:

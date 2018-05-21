@@ -94,6 +94,7 @@ class XWechat(object):
 
     def kill_listener(self):
         """TODO: A nice way to kill the blocking process "curses.getch()" in the listener_executor"""
+        # Push 'q' so the next getch() will return it
         curses.ungetch(ord('q'))
 
     def run(self):
