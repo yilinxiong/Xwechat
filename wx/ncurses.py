@@ -286,6 +286,7 @@ class MainWindow(object):
             self.rwin = RightWindow(self.screen, db)
             self.rwin.display()
 
+            self.raise_exception = True
         except Exception as e:
             print(str(e))
             raise WXError("Failed to initialize cursor")
@@ -299,15 +300,29 @@ class MainWindow(object):
             key = self.main.getch()
             if key in [ord('q'), ord('Q')]:
                 self.destroy()
-                raise WXError('User exit')
+                # Two way to exit the blocking process from a coroutine executor
+                #   - raise exception to make sure all other tasks will be canceled
+                #   - break the loop and return to finish current tasks, this is based on all other tasks have already done
+                if self.raise_exception:
+                    raise WXError('User exit')
+                else:
+                    break
             else:
                 self.rwin.listener(key)
 
-    @staticmethod 
-    def destroy():
-        curses.initscr()
-        curses.nocbreak()
-        curses.echo()
-        curses.endwin()
+    def exit(self, raise_exception=True):
+        # Push 'q' so the next getch() will return it
+        self.raise_exception = raise_exception
+        curses.ungetch(ord('q'))
 
+    def destroy(self):
+        # Don't not end the window again if it's already de-initialized
+        if not self.isendwin:
+            curses.initscr()
+            curses.nocbreak()
+            curses.echo()
+            curses.endwin()
 
+    @property
+    def isendwin(self):
+        return curses.isendwin()

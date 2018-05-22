@@ -10,15 +10,15 @@ from wxpy import Bot
 from utils import ensure_one
 from ncurses import MainWindow
 from _messages import _Message
-from exceptions import WXError
 from _db import MessageDb
 
 
 class XWechat(object):
-    def __init__(self):
+    def __init__(self, interval=0.5):
         self.db = MessageDb()
         self.bot = Bot(console_qr=True)
         self.bot.enable_puid("/tmp/wxpy_puid.pkl")
+        self.interval = interval
         self.mwin = MainWindow(curses.initscr(), self.db)
         self.loop = asyncio.get_event_loop()
         self.executor = ThreadPoolExecutor()
@@ -34,7 +34,7 @@ class XWechat(object):
                     new_messages = [_Message(m) for m in self.bot.messages if not m.read]
                     self.bot.messages.updated = False
                     self.db.process(new_messages)
-
+                # wxpy retrieves messages every 0.5s, keep the db updating messages every 0.5s as well
                 await asyncio.sleep(0.5)
 
         except CancelledError:
@@ -58,7 +58,7 @@ class XWechat(object):
                 if self.mwin.rwin.is_typed:
                     self.mwin.rwin.right_bottom_screen.refresh()
 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(self.interval)
 
         except CancelledError:
             return
@@ -70,32 +70,26 @@ class XWechat(object):
         self.loop.set_default_executor(self.executor)
         await self.loop.run_in_executor(None, self.mwin.listener)
 
-    def cleanup(self):
-        if not curses.isendwin():
-            self.mwin.destroy()
-
-        self.bot.logout()
-        self.db.close()
-
     async def asynchronous(self):
         tasks = [asyncio.ensure_future(task) for task in [self.listener_executor(), self.update_db(), self.print_msg()]]
         done, pending = await asyncio.wait(tasks, return_when=FIRST_EXCEPTION)
-        # listener is running in executor, can not cancel a running task inside executor, manually kill it
-        # Only is
-        if not curses.isendwin():
-            self.kill_listener()
-
         for pending_task in pending:
             pending_task.cancel()
 
-    def terminal(self):
-        # Send the 'q' signal to the listener of curses to raise a Exception so that all pending tasks will be canceled
-        self.kill_listener()
+        # listener is running in executor, can not cancel a running task inside executor,
+        #   just manually exit the blocking process window.getch() by push 'q' to getch()
+        if not self.mwin.isendwin:
+            self.mwin.exit(raise_exception=False)
 
-    def kill_listener(self):
-        """TODO: A nice way to kill the blocking process "curses.getch()" in the listener_executor"""
-        # Push 'q' so the next getch() will return it
-        curses.ungetch(ord('q'))
+    def terminal(self):
+        # Send 'q' to the listener of curses to raise a Exception
+        #   so that asyncio.wait return and cancel all pending tasks
+        self.mwin.exit(raise_exception=True)
+
+    def cleanup(self):
+        self.mwin.destroy()
+        self.bot.logout()
+        self.db.close()
 
     def run(self):
         try:
