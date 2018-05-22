@@ -2,13 +2,13 @@
 Running wechat in shell terminal
 
 ## Send message(Press Enter key in your keyboard)
-![image](https://github.com/MrDreamerSang/Xwechat/blob/master/xwx11.PNG)
+![image](https://github.com/MrDreamerSang/Xwechat/blob/master/images/xwx11.PNG)
 
 ## Display messages and list recent chats only(Press 'b' or 'B' key in your keyboard)
-![image](https://github.com/MrDreamerSang/Xwechat/blob/master/xwx12.PNG)
+![image](https://github.com/MrDreamerSang/Xwechat/blob/master/images/xwx12.PNG)
 
 ## Display messages and list all friends(Press 'a' or 'A' key in your keyboard)
-![image](https://github.com/MrDreamerSang/Xwechat/blob/master/xwx13.PNG)
+![image](https://github.com/MrDreamerSang/Xwechat/blob/master/images/xwx13.PNG)
 
 
 ## Start application(actually just a script, requires python3 and wxpy module)
