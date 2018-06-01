@@ -1,5 +1,5 @@
 # Xwechat
-Running wechat in shell terminal
+Running wechat in shell terminal(Python3.6 is required)
 
 ## Send message(Press Enter key in your keyboard)
 ![image](https://github.com/MrDreamerSang/Xwechat/blob/master/images/xwx11.PNG)
